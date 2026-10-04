@@ -1,0 +1,2 @@
+"""QueryGuard application package."""
+
