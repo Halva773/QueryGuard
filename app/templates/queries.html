@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header split-header"><div><p class="eyebrow">Каталог вычислений</p><h1>Запросы</h1><p class="muted">Поиск, сравнение и сортировка снимков pg_stat_statements.</p></div>{% if current_user.role.value in ['admin','auditor','steward'] %}<a class="button button-secondary" href="/queries.csv">Скачать CSV</a>{% endif %}</header>
+<section class="panel filter-panel">
+  <form class="filters" method="get" action="/queries">
+    <label class="search-field"><span class="sr-only">Поиск</span><input name="q" value="{{ filters.q }}" placeholder="SQL, пользователь, источник"></label>
+    <label><span class="sr-only">Критичность</span><select name="severity"><option value="">Все уровни</option>{% for value,label in [('low','Низкая'),('medium','Средняя'),('high','Высокая'),('critical','Критическая')] %}<option value="{{ value }}" {{ 'selected' if filters.severity == value else '' }}>{{ label }}</option>{% endfor %}</select></label>
+    <label><span class="sr-only">Источник</span><select name="source_id"><option value="">Все источники</option>{% for source in sources %}<option value="{{ source.id }}" {{ 'selected' if filters.source_id == source.id else '' }}>{{ source.name }}</option>{% endfor %}</select></label>
+    <label><span class="sr-only">Состояние</span><select name="archived"><option value="active" {{ 'selected' if filters.archived == 'active' else '' }}>Активные</option><option value="archived" {{ 'selected' if filters.archived == 'archived' else '' }}>Архив</option><option value="all" {{ 'selected' if filters.archived == 'all' else '' }}>Все состояния</option></select></label>
+    <label><span class="sr-only">Сортировка</span><select name="sort">{% for value,label in [('score_desc','По токсичности'),('mean_desc','По времени'),('io_desc','По I/O'),('calls_desc','По вызовам'),('date_desc','По дате'),('query_asc','По тексту')] %}<option value="{{ value }}" {{ 'selected' if filters.sort == value else '' }}>{{ label }}</option>{% endfor %}</select></label>
+    <button class="button button-primary" type="submit">Применить</button>
+  </form>
+</section>
+<section class="panel table-panel">
+  <div class="panel-head"><div><p class="eyebrow">Найдено</p><h2>{{ total }} снимков</h2></div></div>
+  <div class="table-scroll"><table><thead><tr><th>Запрос</th><th>Источник</th><th>Статус</th><th>Пользователь</th><th>Вызовы</th><th>Среднее</th><th>I/O</th><th>Оценка</th><th>Собран</th></tr></thead><tbody>
+  {% for item in items %}
+  <tr><td><a class="query-link" href="/queries/{{ item.id }}"><code>{{ item.query_text[:100] }}{% if item.query_text|length > 100 %}…{% endif %}</code></a></td><td>{{ item.source.name }}</td><td><span class="status-chip {{ 'pending' if item.is_archived else 'online' }}">{{ 'Архив' if item.is_archived else 'Активен' }}</span></td><td>{{ item.db_user }}</td><td>{{ item.calls }}</td><td>{{ '%.1f'|format(item.mean_exec_time_ms) }} мс</td><td>{{ '%.1f'|format(item.io_bytes_estimate / 1048576) }} МБ</td><td><span class="score-pill severity-{{ item.severity.value }}">{{ '%.1f'|format(item.toxicity_score) }}</span></td><td>{{ item.collected_at.strftime('%d.%m.%Y %H:%M') }}</td></tr>
+  {% else %}<tr><td colspan="9" class="empty">По заданным условиям ничего не найдено.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if pages > 1 %}<nav class="pagination" aria-label="Страницы">{% if page > 1 %}<a href="?q={{ filters.q|urlencode }}&severity={{ filters.severity }}&source_id={{ filters.source_id or '' }}&archived={{ filters.archived }}&sort={{ filters.sort }}&page={{ page-1 }}">Назад</a>{% endif %}<span>{{ page }} / {{ pages }}</span>{% if page < pages %}<a href="?q={{ filters.q|urlencode }}&severity={{ filters.severity }}&source_id={{ filters.source_id or '' }}&archived={{ filters.archived }}&sort={{ filters.sort }}&page={{ page+1 }}">Далее</a>{% endif %}</nav>{% endif %}
+</section>
+{% endblock %}

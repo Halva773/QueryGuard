@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<main class="auth-layout">
+  <section class="auth-story">
+    <div class="auth-brand"><span class="brand-mark">QG</span> QueryGuard</div>
+    <div><p class="eyebrow light">Новый профиль</p><h1>Соберите историю нагрузки без слепых зон.</h1><p>После регистрации создаётся роль владельца запросов. Расширенные права назначает администратор.</p></div>
+  </section>
+  <section class="auth-card-wrap">
+    <form class="auth-card" method="post" action="/register">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <p class="eyebrow">Регистрация</p><h2>Создать аккаунт</h2>
+      <label>Логин<input name="username" minlength="3" maxlength="64" required autocomplete="username"></label>
+      <label>Email<input name="email" type="email" required autocomplete="email"></label>
+      <label>Пароль<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+      <button class="button button-primary button-wide" type="submit">Создать аккаунт</button>
+      <p class="auth-link">Уже есть аккаунт? <a href="/login">Войти</a></p>
+    </form>
+  </section>
+</main>
+{% endblock %}
+

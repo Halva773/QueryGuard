@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block content %}<section class="error-page"><span class="error-code">{{ status }}</span><h1>{{ title }}</h1><p>{{ message }}</p><a class="button button-primary" href="/">Вернуться на дашборд</a></section>{% endblock %}
+{% block auth_content %}<section class="error-page auth-error"><span class="error-code">{{ status }}</span><h1>{{ title }}</h1><p>{{ message }}</p><a class="button button-primary" href="/login">Перейти ко входу</a></section>{% endblock %}
+

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header split-header">
+  <div><p class="eyebrow">Состояние вычислений</p><h1>Сводка нагрузки</h1><p class="muted">Последние 7 дней · обновлено {{ data.generated_at[:16]|replace('T', ' ') }} UTC</p></div>
+  <div class="header-actions"><span class="backend-badge">Источники: {{ data.sources }}{% if current_user.role.value != 'owner' %} · пользователи: {{ data.users }}{% endif %}</span><span class="backend-badge">Кэш: {{ data.cache_backend }}</span><a class="button button-secondary" href="/queries.csv">Экспорт отчёта</a></div>
+</header>
+
+<section class="metric-grid" aria-label="Ключевые показатели">
+  <article class="metric-card metric-featured">
+    <div class="metric-label">Индекс экологичности</div>
+    <div class="gauge" style="--value: {{ data.eco_index }}"><span>{{ data.eco_index }}</span></div>
+    <div class="metric-foot">{{ 'Стабильно' if data.eco_index >= 75 else 'Требует внимания' }}</div>
+  </article>
+  <article class="metric-card"><div class="metric-icon danger">!</div><div><div class="metric-label">Критические запросы</div><strong>{{ data.critical_queries }}</strong><small>из {{ data.total_queries }} снимков</small></div></article>
+  <article class="metric-card"><div class="metric-icon warning">↯</div><div><div class="metric-label">Оценка энергии</div><strong>{{ '%.5f'|format(data.energy_kwh) }}</strong><small>кВт·ч · {{ data.cost_rub }} ₽</small></div></article>
+  <article class="metric-card"><div class="metric-icon brand">▤</div><div><div class="metric-label">Обработано I/O</div><strong>{{ data.io_gb }}</strong><small>ГБ за период</small></div></article>
+</section>
+
+<section class="analysis-grid">
+  <article class="panel chart-panel">
+    <div class="panel-head"><div><p class="eyebrow">Динамика</p><h2>Средняя токсичность</h2></div><span class="score-pill severity-{{ 'critical' if data.toxicity >= 75 else 'high' if data.toxicity >= 50 else 'medium' if data.toxicity >= 25 else 'low' }}">{{ data.toxicity }}/100</span></div>
+    <canvas class="line-chart" data-points='{{ data.trend|tojson }}' aria-label="График токсичности за семь дней"></canvas>
+    <div class="chart-legend"><span><i class="legend-line"></i> Индекс токсичности вычислений</span><span>Чем ниже, тем лучше</span></div>
+  </article>
+  <article class="panel recommendation-panel">
+    <div class="panel-head"><div><p class="eyebrow">Следующий шаг</p><h2>Рекомендации</h2></div></div>
+    <div class="distribution" aria-label="Распределение запросов по уровню токсичности">
+      <div class="distribution-bar">{% for level in ['low','medium','high','critical'] %}<i class="distribution-{{ level }}" style="width: {{ (data.severity_counts[level] / data.total_queries * 100) if data.total_queries else 0 }}%"></i>{% endfor %}</div>
+      <div class="distribution-legend">{% for level,label in [('low','низкие'),('medium','средние'),('high','высокие'),('critical','критические')] %}<span><i class="distribution-{{ level }}"></i>{{ label }} · {{ data.severity_counts[level] }}</span>{% endfor %}</div>
+    </div>
+    <div class="recommendation-list">
+      {% for rec in data.recommendations %}
+      <div class="recommendation"><span class="rec-dot {{ rec.level }}"></span><div><strong>{{ rec.title }}</strong><p>{{ rec.text }}</p><small>{{ rec.effect }}</small></div></div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="panel table-panel">
+  <div class="panel-head"><div><p class="eyebrow">Приоритет разбора</p><h2>Самые ресурсоёмкие запросы</h2></div><a class="text-link" href="/queries">Смотреть все</a></div>
+  <div class="table-scroll"><table><thead><tr><th>Запрос</th><th>Источник</th><th>Среднее время</th><th>I/O</th><th>Кэш</th><th>Оценка</th></tr></thead><tbody>
+  {% for item in data.top_queries %}
+  <tr><td><a class="query-link" href="/queries/{{ item.id }}"><code>{{ item.short_query }}</code></a></td><td>{{ item.source }}</td><td>{{ item.mean_ms }} мс</td><td>{{ item.io_mb }} МБ</td><td>{{ item.cache_hit }}%</td><td><span class="score-pill severity-{{ item.severity }}">{{ item.score }}</span></td></tr>
+  {% else %}<tr><td colspan="6" class="empty">Нет данных. Добавьте источник и запустите сбор статистики.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

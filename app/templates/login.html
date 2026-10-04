@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<main class="auth-layout">
+  <section class="auth-story">
+    <div class="auth-brand"><span class="brand-mark">QG</span> QueryGuard</div>
+    <div>
+      <p class="eyebrow light">Торговая сеть · PostgreSQL</p>
+      <h1>Контроль нагрузки начинается с понятных запросов.</h1>
+      <p>Система измеряет вычислительную токсичность, находит узкие места и оценивает стоимость их выполнения.</p>
+    </div>
+    <div class="auth-metrics"><span><strong>6</strong> факторов оценки</span><span><strong>4</strong> роли доступа</span><span><strong>100%</strong> аудит изменений</span></div>
+  </section>
+  <section class="auth-card-wrap">
+    <form class="auth-card" method="post" action="/login">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <p class="eyebrow">Защищённый доступ</p>
+      <h2>Вход в систему</h2>
+      <p class="muted">Используйте выданную учётную запись или демонстрационный профиль.</p>
+      <label>Логин<input name="username" autocomplete="username" required autofocus></label>
+      <label>Пароль<input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="button button-primary button-wide" type="submit">Войти</button>
+      <p class="auth-link">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+      <details class="demo-hint"><summary>Данные для демонстрации</summary><code>admin / Admin123!</code></details>
+    </form>
+  </section>
+</main>
+{% endblock %}
+

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header"><p class="eyebrow">Подключение PostgreSQL</p><h1>{{ 'Редактирование источника' if source else 'Новый источник' }}</h1><p class="muted">Пароль хранится в зашифрованном виде. Рекомендуется отдельный пользователь только для мониторинга.</p></header>
+<form class="panel form-panel" method="post" action="{{ '/sources/' ~ source.id ~ '/edit' if source else '/sources/new' }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="form-grid"><label class="span-2">Название<input name="name" value="{{ source.name if source else '' }}" required maxlength="120"></label><label>Хост<input name="host" value="{{ source.host if source else 'db' }}" required></label><label>Порт<input name="port" type="number" min="1" max="65535" value="{{ source.port if source else 5432 }}" required></label><label>База данных<input name="database_name" value="{{ source.database_name if source else '' }}" required></label><label>Пользователь<input name="username" value="{{ source.username if source else '' }}" required autocomplete="off"></label><label>Пароль<input name="password" type="password" {{ '' if source else 'required' }} autocomplete="new-password" placeholder="{{ 'Оставьте пустым, чтобы не менять' if source else '' }}"></label><label>SSL mode<select name="ssl_mode">{% for mode in ['disable','prefer','require','verify-ca','verify-full'] %}<option value="{{ mode }}" {{ 'selected' if source and source.ssl_mode == mode or not source and mode == 'prefer' else '' }}>{{ mode }}</option>{% endfor %}</select></label>{% if source %}<label class="checkbox-field"><input type="checkbox" name="is_active" {{ 'checked' if source.is_active else '' }}> Источник активен</label>{% endif %}</div>
+<div class="form-help"><strong>Перед подключением</strong><p>В целевой БД включите <code>shared_preload_libraries='pg_stat_statements'</code>, создайте расширение и выдайте пользователю роль <code>pg_read_all_stats</code>.</p></div>
+<div class="form-actions"><a class="button button-quiet" href="/sources">Отмена</a><button class="button button-primary" type="submit">Сохранить</button></div>
+</form>
+{% endblock %}
+

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header split-header"><div><p class="eyebrow">Неизменяемый след</p><h1>Журнал аудита</h1><p class="muted">Все изменения, проверки, экспорты и операции жизненного цикла.</p></div><a class="button button-secondary" href="/audit.csv">Экспорт CSV</a></header>
+<section class="panel filter-panel"><form class="filters compact-filters" method="get"><select name="action"><option value="">Все действия</option>{% for action in actions %}<option value="{{ action }}" {{ 'selected' if selected_action == action else '' }}>{{ action }}</option>{% endfor %}</select><button class="button button-primary">Показать</button></form></section>
+<section class="panel audit-list">{% for item in logs %}<article class="audit-row"><span class="audit-icon">{{ item.action[:1]|upper }}</span><div><strong>{{ item.action }}</strong><p>{{ item.entity_type }} {% if item.entity_id %}#{{ item.entity_id }}{% endif %}</p></div><code>{{ item.details }}</code><div class="audit-meta"><span>{{ item.user.username if item.user else 'system' }}</span><time>{{ item.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</time></div></article>{% else %}<div class="empty">Записей нет.</div>{% endfor %}{% if pages > 1 %}<nav class="pagination">{% if page > 1 %}<a href="?action={{ selected_action }}&page={{ page-1 }}">Назад</a>{% endif %}<span>{{ page }} / {{ pages }}</span>{% if page < pages %}<a href="?action={{ selected_action }}&page={{ page+1 }}">Далее</a>{% endif %}</nav>{% endif %}</section>
+{% endblock %}
+

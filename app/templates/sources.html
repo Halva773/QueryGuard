@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header split-header"><div><p class="eyebrow">Инвентаризация</p><h1>Источники данных</h1><p class="muted">Подключения PostgreSQL и метаданные последнего сбора.</p></div>{% if current_user.role.value in ['owner','steward','admin'] %}<a class="button button-primary" href="/sources/new">Добавить источник</a>{% endif %}</header>
+<section class="source-grid">
+{% for source in sources %}
+<article class="panel source-card"><div class="source-top"><span class="source-icon">PG</span><span class="status-chip {{ 'online' if source.is_active else 'offline' }}">{{ 'Активен' if source.is_active else 'Отключён' }}</span></div><h2>{{ source.name }}</h2><p class="muted">{{ source.host }}:{{ source.port }}/{{ source.database_name }}</p><dl><div><dt>Владелец</dt><dd>{{ source.owner.username }}</dd></div><div><dt>Последний сбор</dt><dd>{{ source.last_collected_at.strftime('%d.%m.%Y %H:%M') if source.last_collected_at else 'ещё не выполнялся' }}</dd></div><div><dt>Контрольная сумма</dt><dd><code>{{ source.checksum[:16] if source.checksum else '—' }}</code></dd></div></dl><div class="card-actions">
+{% if current_user.role.value in ['owner','steward','admin'] %}<a class="button button-quiet" href="/sources/{{ source.id }}/edit">Изменить</a><form method="post" action="/sources/{{ source.id }}/test"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-secondary" type="submit">Проверить</button></form>{% endif %}
+{% if current_user.role.value in ['steward','admin'] %}<form method="post" action="/sources/{{ source.id }}/collect"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-primary" type="submit">Собрать статистику</button></form>{% endif %}
+{% if current_user.role.value == 'admin' %}<form method="post" action="/sources/{{ source.id }}/delete" class="danger-form" data-confirm="Удалить источник и все связанные снимки?"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="confirm" value="yes"><button class="button button-danger" type="submit">Удалить</button></form>{% endif %}
+</div></article>
+{% else %}<article class="panel empty-state"><h2>Источников пока нет</h2><p>Добавьте PostgreSQL и разрешите чтение представления pg_stat_statements.</p></article>{% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} · {{ app_name }}</title>
+  <meta name="description" content="Мониторинг ресурсоёмких запросов PostgreSQL в торговой сети">
+  <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/app.css') }}">
+  <script defer src="{{ url_for('static', path='/js/app.js') }}"></script>
+</head>
+<body class="{% if not current_user %}auth-body{% endif %}">
+{% if current_user %}
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="/" aria-label="QueryGuard — главная">
+        <span class="brand-mark">QG</span>
+        <span><strong>QueryGuard</strong><small>Retail DB control</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Главное меню">
+        <a href="/" class="{{ 'active' if active == 'dashboard' else '' }}"><span class="nav-symbol">▦</span>Сводка</a>
+        <a href="/queries" class="{{ 'active' if active == 'queries' else '' }}"><span class="nav-symbol">⌁</span>Запросы</a>
+        <a href="/sources" class="{{ 'active' if active == 'sources' else '' }}"><span class="nav-symbol">◉</span>Источники</a>
+        <a href="/lifecycle" class="{{ 'active' if active == 'lifecycle' else '' }}"><span class="nav-symbol">↻</span>Жизненный цикл</a>
+        {% if current_user.role.value in ['admin', 'auditor'] %}
+          <a href="/audit" class="{{ 'active' if active == 'audit' else '' }}"><span class="nav-symbol">≡</span>Аудит</a>
+        {% endif %}
+        {% if current_user.role.value == 'admin' %}
+          <a href="/admin/users" class="{{ 'active' if active == 'users' else '' }}"><span class="nav-symbol">♙</span>Пользователи</a>
+        {% endif %}
+        <a href="/about" class="{{ 'active' if active == 'about' else '' }}"><span class="nav-symbol">i</span>Об авторе</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="system-state"><i></i> Система работает</span>
+        <div class="profile-row">
+          <span class="avatar">{{ current_user.username[:2]|upper }}</span>
+          <span class="profile-text"><strong>{{ current_user.username }}</strong><small>{{ current_user.role.value }}</small></span>
+          <form method="post" action="/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="icon-button" type="submit" title="Выйти" aria-label="Выйти">↪</button>
+          </form>
+        </div>
+      </div>
+    </aside>
+    <main class="main-content">
+      <button class="mobile-menu" type="button" data-sidebar-toggle aria-label="Открыть меню">☰</button>
+      {% for item in flashes %}
+        <div class="toast toast-{{ item.kind }}" role="status">{{ item.message }}</div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+{% else %}
+  {% for item in flashes %}<div class="toast auth-toast toast-{{ item.kind }}">{{ item.message }}</div>{% endfor %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+</body>
+</html>
